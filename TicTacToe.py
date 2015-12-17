@@ -1,4 +1,7 @@
 __author__ = 'ideapad'
+import copy
+
+
 class TTO(object):
 
     winning_combos = (
@@ -6,11 +9,11 @@ class TTO(object):
         [0, 3, 6], [1, 4, 7], [2, 5, 8],
         [0, 4, 8], [2, 4, 6])
 
-    def __int__(self,squares=[]):
-        if len(squares)==9:
-            self.squares=[None for i in range(9)]
+    def __init__(self, squares=[]):
+        if len(squares) == 0:
+            self.squares = [None for i in range(9)]
         else:
-            self.squares=squares
+            self.squares = squares
 
     def show(self):
         for element in [self.squares[i:i + 3] for i in range(0, len(self.squares), 3)]:
@@ -22,7 +25,7 @@ class TTO(object):
     def complete(self):
         if None not in [v for v in self.squares]:
             return True
-        if self.winner() is not None:
+        if self.winner('X') or self.winner('O') is not None:
             return True
         return False
 
@@ -47,48 +50,63 @@ class TTO(object):
     def score(self,player,depth):
         if self.winner(player):
             return 10 - depth
-        elif self.winner(get_opp(player)):
+        elif self.winner(TTO.get_opp(player)):
             return depth - 10
         else:
             return 0
 
-    def alpha_beta_search(self,state,player):
-        alpha=-10
-        beta=10
-        opp=get_opp(player)
-        val,move=self.max_value(state,alpha,beta,player,opp,0)
+    def alpha_beta_search(self,board,player):
+        alpha = -10
+        beta = 10
+        v_max = -10
+        state = copy.copy(board)
+        opp = TTO.get_opp(player)
+        for k in state.available_moves():
+            if state.complete(): #check terminal
+                val,move = state.score(player,0),k
+                break
+            state.make_move(k,player)
+            val = state.min_value(state,alpha,beta,player,opp,0)
+            state.make_move(k, None)
+
+            if v_max <= val:
+                v_max,move = val,k
+
         return move
 
     def max_value(self,state,alpha,beta,player,opp,depth):
+
         if state.complete(): #check terminal
             return state.score(player,depth)
-        val=-10
+
+        val = -10
         depth += 1
-        for k in self.available_moves():
+        for k in state.available_moves():
             state.make_move(k,player)
-            val = max(val,self.min_value(state,alpha,beta,player,opp,depth))
-            if val >= beta:
+            val = max(val,state.min_value(state,alpha,beta,player,opp,depth))
+            '''if val >= beta:
                 return val
-            alpha=max(val,alpha)
-
-        return val,k
-
-    def min_value(self,state,alpha,beta,player,opp,depth):
-        if state.complete(): #check terminal
-            return state.score(player,depth)
-        val=10
-        depth += 1
-        for k in self.available_moves():
-            state.make_move(k,opp)
-            val = max(val,self.max_value(state,alpha,beta,player,opp,depth))
-            if val <= alpha:
-                return val
-            beta=min(val,beta)
-
+            alpha = max(val,alpha)'''
+            state.make_move(k, None)
         return val
 
+    def min_value(self,state,alpha,beta,player,opp,depth):
 
-def get_opp(player):
-    if player == 'X':
-        return 'O'
-    return 'X'
+        if state.complete(): #check terminal
+            return state.score(player,depth)
+        val = 10
+        depth += 1
+        for k in state.available_moves():
+            state.make_move(k,opp)
+            val = min(val,state.max_value(state,alpha,beta,player,opp,depth))
+            '''if val <= alpha:
+                return val
+            beta=min(val,beta)'''
+            state.make_move(k, None)
+        return val
+
+    @staticmethod
+    def get_opp(player):
+        if player == 'X':
+            return 'O'
+        return 'X'

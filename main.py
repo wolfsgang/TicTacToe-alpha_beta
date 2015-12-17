@@ -1,20 +1,18 @@
-__author__ = 'ideapad'
-__author__ = 'wolfsgang'
-import TTO
+from TicTacToe import TTO
 import random
 
 
 def choose(board,player):
     if len(board.available_moves()) == 9:
-        return random.choice(9)
+        return random.randint(0,8)
     move = board.alpha_beta_search(board,player)
     return move
 
 if __name__ == '__main__':
     board = TTO()
     board.show()
-    print "1.You move first \n 2.Computer moves first"
-    N=raw_input()
+    print "\n1.You move first \n2.Computer moves first"
+    N=input('->')
     if N == 1:
         player = 'X'
         while not board.complete():
@@ -23,20 +21,23 @@ if __name__ == '__main__':
                 continue
             board.make_move(player_move, player)
             board.show()
+            print '\n'
             if board.complete():
                 break
-            player = TTO.get_opp(player)
-            computer_move = choose(board, player)
-            board.make_move(computer_move, player)
+            cplayer = TTO.get_opp(player)
+            computer_move = choose(board, cplayer)
+            board.make_move(computer_move, cplayer)
             board.show()
+            print '\n'
 
     elif N == 2:
         player='O'
         while not board.complete():
-            player = TTO.get_opp(player)
-            computer_move = choose(board, player)
-            board.make_move(computer_move, player)
+            cplayer = TTO.get_opp(player)
+            computer_move = choose(board, cplayer)
+            board.make_move(computer_move, cplayer)
             board.show()
+            print '\n'
             if board.complete():
                 break
             player_move = int(raw_input("Next Move: ")) - 1
@@ -44,5 +45,11 @@ if __name__ == '__main__':
                 continue
             board.make_move(player_move, player)
             board.show()
+            print '\n'
 
-print "winner is", board.winner()
+if board.winner(player):
+    print "winner is", player
+elif board.winner(cplayer):
+    print "winner is",cplayer
+else:
+    print("TIE")
